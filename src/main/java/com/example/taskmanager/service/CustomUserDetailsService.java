@@ -1,4 +1,4 @@
-package com.example.taskmanager.security;
+package com.example.taskmanager.service;
 
 import com.example.taskmanager.entity.User;
 import com.example.taskmanager.repository.UserRepository;
