@@ -39,6 +39,10 @@ public class User implements org.springframework.security.core.userdetails.UserD
         this.role = Role.USER;
     }
 
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    private java.util.List<Task> tasks;
+
+
     // ===== Getters and Setters =====
 
     public Long getId() {
