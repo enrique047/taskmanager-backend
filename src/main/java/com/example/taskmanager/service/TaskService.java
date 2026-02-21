@@ -9,7 +9,7 @@ import com.example.taskmanager.entity.User;
 import com.example.taskmanager.mapper.TaskMapper;
 import com.example.taskmanager.repository.TaskRepository;
 import com.example.taskmanager.repository.UserRepository;
-
+import org.springframework.data.domain.*;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
@@ -41,31 +41,60 @@ public class TaskService {
     }
 
     // ================= READ =================
-    public List<TaskResponse> getMyTasks() {
+    public Page<TaskResponse> getMyTasks(
+        int page,
+        int size,
+        String sortBy,
+        String direction,
+        String status,
+        String title) {
 
-        User user = getCurrentUser();
+        UserDetails userDetails =
+            (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
-        return taskRepository.findByUser(user)
-                .stream()
-                .map(TaskMapper::toResponse)
-                .toList();
-    }
+        String email = userDetails.getUsername();
 
-    // ================= UPDATE =================
-    public TaskResponse updateTask(Long taskId, UpdateTaskRequest request) {
+        User user = userRepository.findByEmail(email)
+            .orElseThrow(() -> new RuntimeException("User not found"));
 
-        User user = getCurrentUser();
+        Sort sort = direction.equalsIgnoreCase("desc")
+            ? Sort.by(sortBy).descending()
+            : Sort.by(sortBy).ascending();
 
-        Task task = taskRepository.findByIdAndUserId(taskId, user.getId())
-                .orElseThrow(() -> new RuntimeException("Task not found or not yours"));
+        Pageable pageable = PageRequest.of(page, size, sort);
 
-        task.setTitle(request.getTitle());
-        task.setDescription(request.getDescription());
-        task.setStatus(TaskStatus.valueOf(request.getStatus()));
+        Page<Task> taskPage;
 
-        taskRepository.save(task);
+        if (status != null && title != null) {
+            taskPage = taskRepository.findByUserAndStatusAndTitleContainingIgnoreCase(
+                user,
+                TaskStatus.valueOf(status),
+                title,
+                pageable);
 
-        return TaskMapper.toResponse(task);
+        } else if (status != null) {
+            taskPage = taskRepository.findByUserAndStatus(
+                user,
+                TaskStatus.valueOf(status),
+                pageable);
+
+        } else if (title != null) {
+            taskPage = taskRepository.findByUserAndTitleContainingIgnoreCase(
+                user,
+                title,
+                pageable);
+
+        } else {
+            taskPage = taskRepository.findByUser(user, pageable);
+        }
+
+        return taskPage.map(task -> new TaskResponse(
+                task.getId(),
+                task.getTitle(),
+                task.getDescription(),
+                task.getStatus(),
+                task.getCreatedAt()
+        ));
     }
 
     // ================= DELETE =================
@@ -89,5 +118,31 @@ public class TaskService {
 
         return userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
+    }
+
+    public TaskResponse updateTask(Long taskId, UpdateTaskRequest request) {
+
+        UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+        String email = userDetails.getUsername();
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        Task task = taskRepository.findByIdAndUserId(taskId, user.getId())
+                .orElseThrow(() -> new RuntimeException("Task not found or not yours"));
+
+        task.setTitle(request.getTitle());
+        task.setDescription(request.getDescription());
+        task.setStatus(TaskStatus.valueOf(request.getStatus()));
+
+        Task saved = taskRepository.save(task);
+
+        return new TaskResponse(
+                saved.getId(),
+                saved.getTitle(),
+                saved.getDescription(),
+                saved.getStatus(),
+                saved.getCreatedAt());
     }
 }
