@@ -2,6 +2,8 @@ package com.example.taskmanager.service;
 
 import com.example.taskmanager.dto.RegisterRequest;
 import com.example.taskmanager.entity.User;
+import com.example.taskmanager.exception.BadRequestException;
+import com.example.taskmanager.exception.ResourceNotFoundException;
 import com.example.taskmanager.entity.Role;
 import com.example.taskmanager.repository.UserRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -24,11 +26,11 @@ public class UserService {
     public void register(RegisterRequest request) {
 
         if (userRepository.existsByEmail(request.getEmail())) {
-            throw new RuntimeException("Email already in use");
+            throw new BadRequestException("Email already in use");
         }
 
         if (userRepository.existsByUsername(request.getUsername())) {
-            throw new RuntimeException("Username already taken");
+            throw new BadRequestException("Username already taken");
         }
 
         User user = new User();

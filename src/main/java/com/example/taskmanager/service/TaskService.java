@@ -6,6 +6,7 @@ import com.example.taskmanager.dto.UpdateTaskRequest;
 import com.example.taskmanager.entity.Task;
 import com.example.taskmanager.entity.TaskStatus;
 import com.example.taskmanager.entity.User;
+import com.example.taskmanager.exception.ResourceNotFoundException;
 import com.example.taskmanager.mapper.TaskMapper;
 import com.example.taskmanager.repository.TaskRepository;
 import com.example.taskmanager.repository.UserRepository;
@@ -55,7 +56,7 @@ public class TaskService {
         String email = userDetails.getUsername();
 
         User user = userRepository.findByEmail(email)
-            .orElseThrow(() -> new RuntimeException("User not found"));
+            .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         Sort sort = direction.equalsIgnoreCase("desc")
             ? Sort.by(sortBy).descending()
@@ -103,7 +104,7 @@ public class TaskService {
         User user = getCurrentUser();
 
         Task task = taskRepository.findByIdAndUserId(taskId, user.getId())
-                .orElseThrow(() -> new RuntimeException("Task not found or not yours"));
+                .orElseThrow(() -> new ResourceNotFoundException("Task not found or not yours"));
 
         taskRepository.delete(task);
     }
@@ -117,7 +118,7 @@ public class TaskService {
         String email = userDetails.getUsername();
 
         return userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
     }
 
     public TaskResponse updateTask(Long taskId, UpdateTaskRequest request) {
@@ -127,10 +128,10 @@ public class TaskService {
         String email = userDetails.getUsername();
 
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         Task task = taskRepository.findByIdAndUserId(taskId, user.getId())
-                .orElseThrow(() -> new RuntimeException("Task not found or not yours"));
+                .orElseThrow(() -> new ResourceNotFoundException("Task not found or not yours"));
 
         task.setTitle(request.getTitle());
         task.setDescription(request.getDescription());
