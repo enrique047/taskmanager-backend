@@ -1,79 +1,86 @@
 package com.example.taskmanager.exception;
 
 import jakarta.servlet.http.HttpServletRequest;
+
+import java.util.Map;
+
 import org.springframework.http.*;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
-    // 404
-    @ExceptionHandler(ResourceNotFoundException.class)
-    public ResponseEntity<ApiError> handleNotFound(
-            ResourceNotFoundException ex,
-            HttpServletRequest request) {
+        @ExceptionHandler(AccessDeniedException.class)
+        public ResponseEntity<?> handleAccessDenied(AccessDeniedException ex) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                                .body(Map.of("error", "Access Denied"));
+        }
 
-        ApiError error = new ApiError(
-                HttpStatus.NOT_FOUND.value(),
-                "Not Found",
-                ex.getMessage(),
-                request.getRequestURI()
-        );
+        // 404
+        @ExceptionHandler(ResourceNotFoundException.class)
+        public ResponseEntity<ApiError> handleNotFound(
+                        ResourceNotFoundException ex,
+                        HttpServletRequest request) {
 
-        return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
-    }
+                ApiError error = new ApiError(
+                                HttpStatus.NOT_FOUND.value(),
+                                "Not Found",
+                                ex.getMessage(),
+                                request.getRequestURI());
 
-    // 400
-    @ExceptionHandler(BadRequestException.class)
-    public ResponseEntity<ApiError> handleBadRequest(
-            BadRequestException ex,
-            HttpServletRequest request) {
+                return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
+        }
 
-        ApiError error = new ApiError(
-                HttpStatus.BAD_REQUEST.value(),
-                "Bad Request",
-                ex.getMessage(),
-                request.getRequestURI()
-        );
+        // 400
+        @ExceptionHandler(BadRequestException.class)
+        public ResponseEntity<ApiError> handleBadRequest(
+                        BadRequestException ex,
+                        HttpServletRequest request) {
 
-        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
-    }
+                ApiError error = new ApiError(
+                                HttpStatus.BAD_REQUEST.value(),
+                                "Bad Request",
+                                ex.getMessage(),
+                                request.getRequestURI());
 
-    // fallback (500)
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<ApiError> handleGeneral(
-            Exception ex,
-            HttpServletRequest request) {
+                return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+        }
 
-        ApiError error = new ApiError(
-                HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                "Internal Server Error",
-                ex.getMessage(),
-                request.getRequestURI()
-        );
+        // fallback (500)
+        @ExceptionHandler(Exception.class)
+        public ResponseEntity<ApiError> handleGeneral(
+                        Exception ex,
+                        HttpServletRequest request) {
 
-        return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
-    }
+                ApiError error = new ApiError(
+                                HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                                "Internal Server Error",
+                                ex.getMessage(),
+                                request.getRequestURI());
 
-    @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ApiError> handleValidation(
-                    MethodArgumentNotValidException ex,
-                    HttpServletRequest request) {
+                return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
 
-            String errorMessage = ex.getBindingResult()
-                            .getFieldErrors()
-                            .stream()
-                            .map(error -> error.getField() + ": " + error.getDefaultMessage())
-                            .findFirst()
-                            .orElse("Validation error");
+        @ExceptionHandler(MethodArgumentNotValidException.class)
+        public ResponseEntity<ApiError> handleValidation(
+                        MethodArgumentNotValidException ex,
+                        HttpServletRequest request) {
 
-            ApiError error = new ApiError(
-                            HttpStatus.BAD_REQUEST.value(),
-                            "Validation Failed",
-                            errorMessage,
-                            request.getRequestURI());
+                String errorMessage = ex.getBindingResult()
+                                .getFieldErrors()
+                                .stream()
+                                .map(error -> error.getField() + ": " + error.getDefaultMessage())
+                                .findFirst()
+                                .orElse("Validation error");
 
-            return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
-    }
+                ApiError error = new ApiError(
+                                HttpStatus.BAD_REQUEST.value(),
+                                "Validation Failed",
+                                errorMessage,
+                                request.getRequestURI());
+
+                return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+        }
 }

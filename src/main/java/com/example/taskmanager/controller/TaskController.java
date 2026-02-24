@@ -7,6 +7,7 @@ import com.example.taskmanager.service.TaskService;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
@@ -31,16 +32,15 @@ public class TaskController {
     // GET MY TASKS
     @GetMapping
     public ResponseEntity<Page<TaskResponse>> getMyTasks(
-        @RequestParam(defaultValue = "0") int page,
-        @RequestParam(defaultValue = "5") int size,
-        @RequestParam(defaultValue = "createdAt") String sortBy,
-        @RequestParam(defaultValue = "desc") String direction,
-        @RequestParam(required = false) String status,
-        @RequestParam(required = false) String title) {
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "5") int size,
+            @RequestParam(defaultValue = "createdAt") String sortBy,
+            @RequestParam(defaultValue = "desc") String direction,
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) String title) {
 
         return ResponseEntity.ok(
-            taskService.getMyTasks(page, size, sortBy, direction, status, title)
-        );
+                taskService.getMyTasks(page, size, sortBy, direction, status, title));
     }
 
     // UPDATE TASK
@@ -58,5 +58,14 @@ public class TaskController {
 
         taskService.deleteTask(id);
         return ResponseEntity.ok("Task deleted successfully");
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/admin/all")
+    public ResponseEntity<Page<TaskResponse>> getAllTasks(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "5") int size) {
+
+        return ResponseEntity.ok(taskService.getAllTasks(page, size));
     }
 }

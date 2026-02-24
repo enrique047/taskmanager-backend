@@ -7,15 +7,14 @@ import com.example.taskmanager.entity.Task;
 import com.example.taskmanager.entity.TaskStatus;
 import com.example.taskmanager.entity.User;
 import com.example.taskmanager.exception.ResourceNotFoundException;
-import com.example.taskmanager.mapper.TaskMapper;
 import com.example.taskmanager.repository.TaskRepository;
 import com.example.taskmanager.repository.UserRepository;
 import org.springframework.data.domain.*;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 
 @Service
 public class TaskService {
@@ -42,6 +41,7 @@ public class TaskService {
     }
 
     // ================= READ =================
+    @PreAuthorize("hasRole('USER')")
     public Page<TaskResponse> getMyTasks(
         int page,
         int size,
@@ -145,5 +145,20 @@ public class TaskService {
                 saved.getDescription(),
                 saved.getStatus(),
                 saved.getCreatedAt());
+    }
+
+
+    public Page<TaskResponse> getAllTasks(int page, int size) {
+
+    Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+
+        return taskRepository.findAll(pageable)
+            .map(task -> new TaskResponse(
+                    task.getId(),
+                    task.getTitle(),
+                    task.getDescription(),
+                    task.getStatus(),
+                    task.getCreatedAt()
+            ));
     }
 }
