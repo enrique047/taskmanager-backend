@@ -11,22 +11,14 @@ import java.util.Date;
 @Component
 public class JwtUtil {
 
-    private static final long EXPIRATION_TIME = 1000 * 60 * 60; // 1 hour
+    private static final long ACCESS_TOKEN_EXPIRATION = 1000 * 60 * 15; // 15 min
+    private static final long REFRESH_TOKEN_EXPIRATION = 1000 * 60 * 60 * 24 * 7; // 7 days
 
     //CONSTANT SECRET KEY (must be 32+ chars for HS256)
     private static final String SECRET =
             "myverysecuresecretkeymyverysecuresecretkey";
 
     private final Key key = Keys.hmacShaKeyFor(SECRET.getBytes());
-
-    public String generateToken(String username) {
-        return Jwts.builder()
-                .setSubject(username)
-                .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
-                .signWith(key)
-                .compact();
-    }
 
     public String extractUsername(String token) {
         return getClaims(token).getSubject();
@@ -47,5 +39,31 @@ public class JwtUtil {
                 .build()
                 .parseClaimsJws(token)
                 .getBody();
+    }
+
+    public String generateAccessToken(String username) {
+        return buildToken(username, ACCESS_TOKEN_EXPIRATION);
+    }
+
+    public String generateRefreshToken(String username) {
+        return buildToken(username, REFRESH_TOKEN_EXPIRATION);
+    }
+
+    private String buildToken(String username, long expiration) {
+        return Jwts.builder()
+                .setSubject(username)
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(System.currentTimeMillis() + expiration))
+                .signWith(key)
+                .compact();
+    }
+
+    public boolean isTokenValid(String token) {
+        try {
+            getClaims(token);
+            return !isTokenExpired(token);
+        } catch (JwtException e) {
+            return false;
+        }
     }
 }
