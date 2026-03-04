@@ -1,8 +1,8 @@
-## Task Manager Backend
+# Task Manager Backend
 
 A Spring Boot REST API for managing tasks. The application provides endpoints to create, retrieve, update, and delete tasks using a layered backend architecture.
 
-# Tech Stack
+## Tech Stack
 
 Java
 Spring Boot
@@ -12,7 +12,7 @@ Hibernate
 Maven
 MySQL
 
-# Architecture
+## Architecture
 
 The project follows a layered architecture:
 Controller → Service → Repository → Database
