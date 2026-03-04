@@ -21,8 +21,13 @@ MySQL
 ## Architecture
 
 The project follows a layered architecture:
+
 Controller → Service → Repository → Database
+
 Controller – Handles HTTP requests and responses
+
 Service – Contains business logic
+
 Repository – Performs database operations using Spring Data JPA
+
 Entity – Represents the Task model stored in the database
