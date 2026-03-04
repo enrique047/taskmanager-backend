@@ -5,11 +5,17 @@ A Spring Boot REST API for managing tasks. The application provides endpoints to
 ## Tech Stack
 
 Java
+
 Spring Boot
+
 Spring Web
+
 Spring Data JPA
+
 Hibernate
+
 Maven
+
 MySQL
 
 ## Architecture
